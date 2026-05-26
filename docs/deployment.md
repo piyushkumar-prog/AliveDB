@@ -60,14 +60,14 @@ npm run db:migrate:prod
 
 ### Step 4 — Verify Cron
 
-AliveDB's `vercel.json` configures a cron job that fires every hour:
+AliveDB's `vercel.json` configures a cron job that fires daily (every day at midnight) to comply with Vercel Hobby (free) account limitations:
 
 ```json
 {
   "crons": [
     {
       "path": "/api/cron/ping",
-      "schedule": "0 * * * *"
+      "schedule": "0 0 * * *"
     }
   ]
 }
