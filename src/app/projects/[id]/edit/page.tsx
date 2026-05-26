@@ -34,13 +34,7 @@ export default function EditProjectPage() {
     <>
       <Sidebar />
       <main className="main-content">
-        <div
-          style={{
-            padding: "24px 32px 20px",
-            borderBottom: "1px solid #e5e7eb",
-            background: "#ffffff",
-          }}
-        >
+        <div className="page-header stack">
           <Link
             href="/"
             style={{
@@ -69,7 +63,7 @@ export default function EditProjectPage() {
           </h1>
         </div>
 
-        <div style={{ padding: "28px 32px", maxWidth: "560px" }}>
+        <div className="page-content" style={{ maxWidth: "560px" }}>
           {loading ? (
             <div className="card" style={{ padding: "28px", display: "flex", flexDirection: "column", gap: "16px" }}>
               {[1, 2, 3, 4].map((i) => (

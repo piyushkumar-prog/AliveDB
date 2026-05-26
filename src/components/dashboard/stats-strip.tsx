@@ -41,14 +41,7 @@ export function StatsStrip({ stats, loading }: StatsStripProps) {
   const cards = STAT_CARDS(stats);
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(4, 1fr)",
-        gap: "14px",
-        marginBottom: "28px",
-      }}
-    >
+    <div className="stats-grid">
       {cards.map((card) => (
         <div
           key={card.label}

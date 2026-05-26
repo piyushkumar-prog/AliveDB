@@ -62,16 +62,7 @@ export default function DashboardPage() {
       <Sidebar />
       <main className="main-content">
         {/* Page header */}
-        <div
-          style={{
-            padding: "24px 32px 20px",
-            borderBottom: "1px solid #e5e7eb",
-            background: "#ffffff",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
+        <div className="page-header">
           <div>
             <h1
               style={{
@@ -111,19 +102,12 @@ export default function DashboardPage() {
         </div>
 
         {/* Content */}
-        <div style={{ padding: "28px 32px" }}>
+        <div className="page-content">
           {/* Stats */}
           <StatsStrip stats={stats} loading={loading} />
 
           {/* Projects grid + Activity feed */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 340px",
-              gap: "24px",
-              alignItems: "start",
-            }}
-          >
+          <div className="dashboard-grid">
             {/* Projects */}
             <div>
               <div
@@ -200,10 +184,6 @@ export default function DashboardPage() {
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
-        @media (max-width: 900px) {
-          .main-content { margin-left: 0 !important; }
-          .sidebar { display: none; }
-        }
       `}</style>
     </>
   );

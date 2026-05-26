@@ -9,6 +9,11 @@ export const metadata: Metadata = {
   description:
     "Minimal self-hosted keep-alive monitoring for Supabase projects. Prevent your Supabase instances from pausing with automated endpoint pinging.",
   keywords: ["supabase", "keep-alive", "monitoring", "self-hosted", "devops"],
+  icons: {
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
+  },
   openGraph: {
     title: "AliveDB",
     description: "Minimal self-hosted keep-alive monitoring for Supabase projects.",

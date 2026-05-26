@@ -70,6 +70,22 @@ Examples:
 
 ---
 
+### BASIC_AUTH_USER
+
+**Optional.**
+
+Username for HTTP Basic Authentication. If set alongside `BASIC_AUTH_PASSWORD`, it password-protects all pages and APIs (except `/api/cron/ping`). Leave empty to disable authentication (useful for local development).
+
+---
+
+### BASIC_AUTH_PASSWORD
+
+**Optional.**
+
+Password for HTTP Basic Authentication. If set alongside `BASIC_AUTH_USER`, it password-protects the application dashboard.
+
+---
+
 ## Setting Variables
 
 ### Vercel

@@ -1,11 +1,13 @@
 # AliveDB
 
+![AliveDB Header](./public/alivedb.png)
+
 > Minimal self-hosted keep-alive monitoring for Supabase projects.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://typescriptlang.org)
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/alivedb)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/piyushkumar-prog/AliveDB)
 
 AliveDB is an open-source, self-hosted platform that prevents your Supabase projects from going into paused mode by automatically pinging configured endpoints at set intervals. It runs entirely on your own infrastructure — no subscriptions, no vendor lock-in, no telemetry.
 
@@ -21,7 +23,7 @@ AliveDB is an open-source, self-hosted platform that prevents your Supabase proj
 - **Manual Ping** — Trigger a ping at any time with rate limiting
 - **Pause / Resume** — Temporarily stop monitoring individual projects
 - **Docker Support** — Full Docker Compose setup for self-hosting
-- **Zero Auth** — No login system. Deploy it, use it.
+- **Zero Auth / Optional Password Access** — No database login. Optionally protect your hosted dashboard with a password via environment variables.
 - **Open Source** — MIT licensed, fully auditable
 
 ---
@@ -81,7 +83,7 @@ Choosing your hosting environment, deployment model, and database engine is **en
      ```
 
 3. **Deploy to Vercel:**
-   [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/alivedb)
+    [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/piyushkumar-prog/AliveDB)
 
 4. **Set environment variables** in Vercel dashboard:
    ```
@@ -123,7 +125,7 @@ That's it. AliveDB is live.
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/alivedb.git
+git clone https://github.com/piyushkumar-prog/AliveDB.git
 cd alivedb
 
 # Install dependencies
@@ -148,7 +150,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ```bash
 # Clone and configure
-git clone https://github.com/yourusername/alivedb.git
+git clone https://github.com/piyushkumar-prog/AliveDB.git
 cd alivedb
 
 # Edit docker/docker-compose.yml — set CRON_SECRET
@@ -204,6 +206,23 @@ Once your AliveDB instance is running (locally, via Docker, or deployed on Verce
 
 ---
 
+## Password Protection (Optional)
+
+By default, AliveDB runs in open access mode (no login required) for easy local development. 
+
+To protect your hosted dashboard, you can enable a secure custom login page by setting two environment variables:
+
+* **`BASIC_AUTH_USER`** — The username to sign in with (e.g., `admin`).
+* **`BASIC_AUTH_PASSWORD`** — A strong password of your choice.
+
+Once configured:
+- All dashboard pages will be automatically protected.
+- Visitors will be redirected to a custom login screen.
+- A secure, HTTP-only session cookie is set in the browser upon successful login.
+- A **Sign out** action button will appear in the sidebar footer.
+
+---
+
 ## Environment Variables
 
 | Variable | Required | Default | Description |
@@ -214,6 +233,8 @@ Once your AliveDB instance is running (locally, via Docker, or deployed on Verce
 | `PING_TIMEOUT_MS` | ❌ | `10000` | Ping timeout in milliseconds |
 | `PING_MAX_RETRIES` | ❌ | `2` | Max retry attempts per ping |
 | `NEXT_PUBLIC_APP_URL` | ❌ | `http://localhost:3000` | Your deployed app URL |
+| `BASIC_AUTH_USER` | ❌ | — | Optional username for dashboard password protection |
+| `BASIC_AUTH_PASSWORD` | ❌ | — | Optional password for dashboard password protection |
 
 See [`.env.example`](./.env.example) for full documentation.
 

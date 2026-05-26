@@ -3,7 +3,7 @@
 ## Quick Start
 
 ```bash
-git clone https://github.com/yourusername/alivedb.git
+git clone https://github.com/piyushkumar-prog/AliveDB.git
 cd alivedb
 
 # Edit docker/docker-compose.yml — update CRON_SECRET

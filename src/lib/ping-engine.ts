@@ -81,11 +81,11 @@ async function attemptPing(
       method,
       signal: controller.signal,
       headers: {
-        "User-Agent": "AliveDB/1.0 (keep-alive monitor; https://github.com/yourusername/alivedb)",
+        "User-Agent": "AliveDB/1.0 (keep-alive monitor; https://github.com/piyushkumar-prog/AliveDB)",
         Accept: "application/json, text/plain, */*",
       },
-      // Prevent following redirects to private IPs
-      redirect: "follow",
+      // Prevent following redirects to private IPs (mitigates SSRF redirect bypasses)
+      redirect: "manual",
     });
 
     const responseTime = Date.now() - start;

@@ -125,13 +125,7 @@ export default function ProjectDetailPage() {
       <Sidebar />
       <main className="main-content">
         {/* Header */}
-        <div
-          style={{
-            padding: "24px 32px 20px",
-            borderBottom: "1px solid #e5e7eb",
-            background: "#ffffff",
-          }}
-        >
+        <div className="page-header stack">
           <Link
             href="/"
             style={{
@@ -147,7 +141,7 @@ export default function ProjectDetailPage() {
             <ArrowLeft size={12} />
             Dashboard
           </Link>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
+          <div className="project-detail-header-row">
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "4px" }}>
                 <h1 style={{ fontSize: "18px", fontWeight: "700", color: "#0a0a0a", margin: 0, letterSpacing: "-0.02em" }}>
@@ -187,9 +181,9 @@ export default function ProjectDetailPage() {
         </div>
 
         {/* Content */}
-        <div style={{ padding: "28px 32px" }}>
+        <div className="page-content">
           {/* Summary stats */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "14px", marginBottom: "24px" }}>
+          <div className="stats-grid">
             {[
               { label: "Uptime", value: `${overallUptime}%` },
               { label: "Avg Response", value: avgResponseTime > 0 ? formatResponseTime(Math.round(avgResponseTime)) : "—" },
@@ -208,7 +202,7 @@ export default function ProjectDetailPage() {
           </div>
 
           {/* Charts */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "24px" }}>
+          <div className="charts-grid">
             <div className="card" style={{ padding: "20px" }}>
               <h3 style={{ fontSize: "13px", fontWeight: "600", margin: "0 0 16px", color: "#0a0a0a" }}>
                 7-Day Uptime

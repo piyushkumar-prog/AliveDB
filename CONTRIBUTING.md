@@ -13,7 +13,7 @@ Thank you for your interest in contributing to AliveDB. This document outlines h
 
 ```bash
 # 1. Fork and clone
-git clone https://github.com/yourusername/alivedb.git
+git clone https://github.com/piyushkumar-prog/AliveDB.git
 cd alivedb
 
 # 2. Install dependencies

@@ -14,13 +14,7 @@ export default function NewProjectPage() {
       <Sidebar />
       <main className="main-content">
         {/* Page header */}
-        <div
-          style={{
-            padding: "24px 32px 20px",
-            borderBottom: "1px solid #e5e7eb",
-            background: "#ffffff",
-          }}
-        >
+        <div className="page-header stack">
           <Link
             href="/"
             style={{
@@ -53,7 +47,7 @@ export default function NewProjectPage() {
         </div>
 
         {/* Form */}
-        <div style={{ padding: "28px 32px", maxWidth: "560px" }}>
+        <div className="page-content" style={{ maxWidth: "560px" }}>
           <div className="card" style={{ padding: "28px" }}>
             <ProjectForm mode="create" />
           </div>

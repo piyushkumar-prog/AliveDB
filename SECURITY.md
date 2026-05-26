@@ -12,7 +12,7 @@
 
 **Do not report security vulnerabilities through public GitHub issues.**
 
-Please email security concerns to: **security@yourdomain.com** (replace with your contact)
+Please report security concerns privately using GitHub's Private Vulnerability Reporting feature: **https://github.com/piyushkumar-prog/AliveDB/security/advisories/new**
 
 Include in your report:
 - Description of the vulnerability
