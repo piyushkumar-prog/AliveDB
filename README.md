@@ -96,7 +96,7 @@ Choosing your hosting environment, deployment model, and database engine is **en
    * **Option A: Automatically during Vercel Build (Recommended)**
      In your Vercel Dashboard, go to **Settings** > **General** > **Build & Development Settings**. Override the **Build Command** to:
      ```bash
-     npx prisma migrate deploy && npm run build
+     npm run db:migrate:prod && npm run build
      ```
      *(This ensures your Turso database schema is always kept up to date on every deployment automatically).*
 
@@ -106,11 +106,11 @@ Choosing your hosting environment, deployment model, and database engine is **en
        ```powershell
        $env:DATABASE_URL="libsql://[your-db].turso.io"
        $env:DATABASE_AUTH_TOKEN="your-turso-token"
-       npx prisma migrate deploy
+       npm run db:migrate:prod
        ```
      * **macOS / Linux / Git Bash:**
        ```bash
-       DATABASE_URL="libsql://[your-db].turso.io" DATABASE_AUTH_TOKEN="your-turso-token" npx prisma migrate deploy
+       DATABASE_URL="libsql://[your-db].turso.io" DATABASE_AUTH_TOKEN="your-turso-token" npm run db:migrate:prod
        ```
 
 That's it. AliveDB is live.
@@ -160,6 +160,47 @@ docker compose -f docker/docker-compose.yml up -d
 Open [http://localhost:3000](http://localhost:3000).
 
 SQLite data persists in a Docker volume (`alivedb-data`).
+
+---
+
+## Step-by-Step Dashboard Setup
+
+Once your AliveDB instance is running (locally, via Docker, or deployed on Vercel), you can add and monitor your Supabase projects using the web interface. Follow these steps to configure your first project:
+
+1. **Access the Dashboard**
+   Open your browser and navigate to your AliveDB instance (e.g., `http://localhost:3000` or your Vercel deployment URL).
+
+2. **Add a New Project**
+   * Click the **Add Project** button in the top-right corner of the page.
+   * You will be presented with the configuration form.
+
+3. **Configure Project Details**
+   * **Project Name**: Enter a descriptive name for your project (e.g., `My Supabase Production` or `Staging App`).
+   * **Project URL**: Enter the base URL of your Supabase project. You can find this in your Supabase Dashboard under **Project Settings > API**. It usually looks like:
+     ```
+     https://[your-project-ref].supabase.co
+     ```
+   * **Health Endpoint**: The URL path that AliveDB will ping.
+     * **`/` (Root)**: Pings the root URL of your project. Returns a public `200 OK` detailing available services without requiring any authentication headers.
+     * **`/auth/v1/health` (Supabase Auth - Recommended for clean 200 OK)**: Pings the GoTrue auth service health endpoint. Returns a public `200 OK` without requiring any API keys.
+     * **`/rest/v1/` (Supabase API)**: Pings the auto-generated PostgREST API endpoint. This triggers an active check directly on your database connection layer.
+     * **Custom Path**: If you have a custom Next.js API route or Supabase Edge Function that runs database queries (e.g., `/functions/v1/health`), you can input that here.
+     > [!TIP]
+     > **Why `401 Unauthorized` on `/rest/v1/` is successful:**
+     > When pinging `/rest/v1/`, the response will be a `401 Unauthorized` because AliveDB does not send authentication headers. **This is expected and is considered a successful ping!** The 401 response proves the PostgREST server and database woke up, parsed the request, and responded.
+     > 
+     > If you prefer to see a clean **`200 OK`** in your logs without storing sensitive API keys in AliveDB, use `/auth/v1/health` or `/` as your health endpoint.
+   * **Ping Interval**: Select how frequently AliveDB should wake up your project.
+     * Options: `Every 6 hours`, `Every 12 hours`, `Every 24 hours`, or a custom cron expression (e.g. `0 0 * * *`).
+     * *Since Supabase pauses inactive projects after 7 days, checking once or twice a day (e.g., every 12 or 24 hours) is highly recommended and sufficient to keep it alive.*
+   * **HTTP Method**:
+     * **`GET` (Recommended)**: Performs a full request. Best for standard health checks and ensuring the page executes completely.
+     * **`HEAD`**: Requests only headers. Lightweight and consumes less bandwidth.
+
+4. **Save and Verify**
+   * Click the **Add Project** button at the bottom of the form.
+   * You will be redirected back to the dashboard, where your new project will appear.
+   * Click the **Ping Now** button on your project's card to run an immediate manual ping to verify the setup. The response time, status code, and uptime chart will update instantly.
 
 ---
 

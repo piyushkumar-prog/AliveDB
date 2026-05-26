@@ -8,18 +8,17 @@
 import cron from "node-cron";
 import { PrismaClient } from "@prisma/client";
 import { PrismaLibSQL } from "@prisma/adapter-libsql";
-import { createClient } from "@libsql/client";
 
 function createPrisma(): PrismaClient {
   const url = process.env.DATABASE_URL ?? "";
   if (url.startsWith("libsql://") || url.startsWith("wss://")) {
-    const libsql = createClient({ url, authToken: process.env.DATABASE_AUTH_TOKEN });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const adapter = new PrismaLibSQL(libsql as any);
+    const adapter = new PrismaLibSQL({
+      url,
+      authToken: process.env.DATABASE_AUTH_TOKEN,
+    });
     return new PrismaClient({ adapter });
   }
   return new PrismaClient();
-
 }
 
 const prisma = createPrisma();

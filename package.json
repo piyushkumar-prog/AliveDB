@@ -9,7 +9,7 @@
     "lint": "next lint",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "db:migrate:prod": "prisma migrate deploy",
+    "db:migrate:prod": "node prisma/migrate-turso.js",
     "db:studio": "prisma studio",
     "worker": "tsx worker/index.ts",
     "postinstall": "prisma generate"

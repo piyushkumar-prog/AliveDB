@@ -28,27 +28,20 @@ export default function DashboardPage() {
     if (showRefresh) setRefreshing(true);
 
     try {
-      const [projectsRes, statsRes] = await Promise.all([
+      const [projectsRes, statsRes, logsRes] = await Promise.all([
         fetch("/api/projects"),
         fetch("/api/stats"),
+        fetch("/api/logs"),
       ]);
 
       const projectsJson = await projectsRes.json();
       const statsJson = await statsRes.json();
+      const logsJson = await logsRes.json();
 
       const fetchedProjects = projectsJson.data ?? [];
       setProjects(fetchedProjects);
       setStats(statsJson.data ?? stats);
-
-      // Build recent logs from project logs (cross-project activity)
-      const allLogs = fetchedProjects.flatMap((p: Project & { logs: PingLog[] }) =>
-        (p.logs ?? []).map((log: PingLog) => ({ ...log, project: { name: p.name } }))
-      );
-      allLogs.sort(
-        (a: PingLog, b: PingLog) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-      setRecentLogs(allLogs.slice(0, 20));
+      setRecentLogs(logsJson.data ?? []);
     } catch (err) {
       console.error("Failed to fetch dashboard data:", err);
     } finally {
