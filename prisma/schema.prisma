@@ -1,0 +1,48 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id             String    @id @default(cuid())
+  name           String
+  url            String
+  healthEndpoint String    @default("/")
+  pingInterval   String    @default("12h") // 6h | 12h | 24h | custom
+  customCron     String?
+  method         String    @default("GET") // GET | HEAD
+  isPaused       Boolean   @default(false)
+  status         String    @default("pending") // active | warning | down | pending | paused
+  lastPingedAt   DateTime?
+  nextPingAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  logs PingLog[]
+
+  @@map("projects")
+}
+
+model PingLog {
+  id           String   @id @default(cuid())
+  projectId    String
+  statusCode   Int?
+  responseTime Int? // milliseconds
+  success      Boolean
+  error        String?
+  createdAt    DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([createdAt])
+  @@map("ping_logs")
+}
