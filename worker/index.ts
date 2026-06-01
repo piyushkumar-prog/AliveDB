@@ -10,15 +10,13 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaLibSQL } from "@prisma/adapter-libsql";
 
 function createPrisma(): PrismaClient {
-  const url = process.env.DATABASE_URL ?? "";
-  if (url.startsWith("libsql://") || url.startsWith("wss://")) {
-    const adapter = new PrismaLibSQL({
-      url,
-      authToken: process.env.DATABASE_AUTH_TOKEN,
-    });
-    return new PrismaClient({ adapter });
-  }
-  return new PrismaClient();
+  const url = process.env.DATABASE_URL || "file:./prisma/dev.db";
+  const isLocal = url.startsWith("file:");
+  const adapter = new PrismaLibSQL({
+    url,
+    authToken: isLocal ? undefined : process.env.DATABASE_AUTH_TOKEN,
+  });
+  return new PrismaClient({ adapter });
 }
 
 const prisma = createPrisma();

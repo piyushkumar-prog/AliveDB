@@ -7,20 +7,16 @@ declare global {
 }
 
 function createPrismaClient(): PrismaClient {
-  const databaseUrl = process.env.DATABASE_URL ?? "";
+  const databaseUrl = process.env.DATABASE_URL || "file:./prisma/dev.db";
 
-  // Turso / LibSQL (production)
-  if (databaseUrl.startsWith("libsql://") || databaseUrl.startsWith("wss://")) {
-    const authToken = process.env.DATABASE_AUTH_TOKEN;
-    const adapter = new PrismaLibSQL({
-      url: databaseUrl,
-      authToken,
-    });
-    return new PrismaClient({ adapter });
-  }
+  const isLocal = databaseUrl.startsWith("file:");
+  const adapter = new PrismaLibSQL({
+    url: databaseUrl,
+    authToken: isLocal ? undefined : process.env.DATABASE_AUTH_TOKEN,
+  });
 
-  // SQLite file (local dev / Docker)
   return new PrismaClient({
+    adapter,
     log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
   });
 }
