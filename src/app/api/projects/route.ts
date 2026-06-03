@@ -11,6 +11,7 @@ const CreateProjectSchema = z.object({
   pingInterval: z.enum(["6h", "12h", "24h", "custom"]).default("12h"),
   customCron: z.string().optional(),
   method: z.enum(["GET", "HEAD"]).default("GET"),
+  supabaseAnonKey: z.string().optional(),
 });
 
 // GET /api/projects — List all projects
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { name, url, healthEndpoint, pingInterval, customCron, method } = parsed.data;
+    const { name, url, healthEndpoint, pingInterval, customCron, method, supabaseAnonKey } = parsed.data;
 
     // SSRF validation
     try {
@@ -64,6 +65,7 @@ export async function POST(req: NextRequest) {
         pingInterval,
         customCron,
         method,
+        supabaseAnonKey: supabaseAnonKey || null,
         status: "pending",
         nextPingAt: getNextPingTime(pingInterval),
       },

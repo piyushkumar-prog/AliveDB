@@ -21,6 +21,7 @@ model Project {
   pingInterval   String    @default("12h") // 6h | 12h | 24h | custom
   customCron     String?
   method         String    @default("GET") // GET | HEAD
+  supabaseAnonKey String?  // Supabase anon/public key for authenticated pings
   isPaused       Boolean   @default(false)
   status         String    @default("pending") // active | warning | down | pending | paused
   lastPingedAt   DateTime?

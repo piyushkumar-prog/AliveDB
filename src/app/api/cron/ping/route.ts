@@ -65,9 +65,11 @@ async function processPing(project: {
   healthEndpoint: string;
   method: string;
   pingInterval: string;
+  supabaseAnonKey: string | null;
 }) {
   const result = await pingUrl(project.url, project.healthEndpoint, {
     method: project.method as "GET" | "HEAD",
+    supabaseAnonKey: project.supabaseAnonKey,
   });
 
   const now = new Date();

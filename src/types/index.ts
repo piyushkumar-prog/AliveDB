@@ -14,6 +14,7 @@ export interface Project {
   pingInterval: string;
   customCron: string | null;
   method: string;
+  supabaseAnonKey: string | null;
   isPaused: boolean;
   status: string;
   lastPingedAt: Date | string | null;
@@ -61,6 +62,7 @@ export interface CreateProjectInput {
   pingInterval?: string;
   customCron?: string;
   method?: string;
+  supabaseAnonKey?: string;
 }
 
 export interface UpdateProjectInput {
@@ -70,6 +72,7 @@ export interface UpdateProjectInput {
   pingInterval?: string;
   customCron?: string;
   method?: string;
+  supabaseAnonKey?: string | null;
   isPaused?: boolean;
 }
 

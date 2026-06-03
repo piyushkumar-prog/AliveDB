@@ -4,6 +4,30 @@ const path = require("path");
 const { execSync } = require("child_process");
 
 async function main() {
+  // Load environment variables from .env.local and .env if present
+  const dotenvFiles = [".env.local", ".env"];
+  for (const file of dotenvFiles) {
+    const envPath = path.resolve(process.cwd(), file);
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, "utf-8");
+      content.split(/\r?\n/).forEach(line => {
+        line = line.trim();
+        if (!line || line.startsWith("#")) return;
+        const match = line.match(/^([^=]+)=(.*)$/);
+        if (match) {
+          const key = match[1].trim();
+          let val = match[2].trim();
+          if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+            val = val.slice(1, -1);
+          }
+          if (!process.env[key]) {
+            process.env[key] = val;
+          }
+        }
+      });
+    }
+  }
+
   const url = process.env.DATABASE_URL;
   const authToken = process.env.DATABASE_AUTH_TOKEN;
 

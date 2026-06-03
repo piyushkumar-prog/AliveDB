@@ -42,7 +42,7 @@ function getNextPingTime(interval: string, from: Date = new Date()): Date {
   return addHours(from, map[interval] ?? 12);
 }
 
-async function pingUrl(url: string, endpoint: string, method: string): Promise<{ success: boolean; statusCode?: number; responseTime?: number; error?: string }> {
+async function pingUrl(url: string, endpoint: string, method: string, supabaseAnonKey?: string | null): Promise<{ success: boolean; statusCode?: number; responseTime?: number; error?: string }> {
   const fullUrl = (() => {
     try {
       const base = new URL(url);
@@ -58,10 +58,15 @@ async function pingUrl(url: string, endpoint: string, method: string): Promise<{
     const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
     const start = Date.now();
     try {
+      const headers: Record<string, string> = { "User-Agent": "AliveDB-Worker/1.0" };
+      if (supabaseAnonKey) {
+        headers["apikey"] = supabaseAnonKey;
+        headers["Authorization"] = `Bearer ${supabaseAnonKey}`;
+      }
       const res = await fetch(fullUrl, {
         method,
         signal: controller.signal,
-        headers: { "User-Agent": "AliveDB-Worker/1.0" },
+        headers,
       });
       clearTimeout(timer);
       const responseTime = Date.now() - start;
@@ -96,7 +101,7 @@ async function processProjects() {
 
   await Promise.allSettled(
     due.map(async (project) => {
-      const result = await pingUrl(project.url, project.healthEndpoint, project.method);
+      const result = await pingUrl(project.url, project.healthEndpoint, project.method, project.supabaseAnonKey);
       const now = new Date();
       const status = result.success ? "active" : result.error?.includes("Timeout") ? "warning" : "down";
       await prisma.$transaction([

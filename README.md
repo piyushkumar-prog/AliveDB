@@ -183,15 +183,16 @@ Once your AliveDB instance is running (locally, via Docker, or deployed on Verce
      https://[your-project-ref].supabase.co
      ```
    * **Health Endpoint**: The URL path that AliveDB will ping.
-     * **`/` (Root)**: Pings the root URL of your project. Returns a public `200 OK` detailing available services without requiring any authentication headers.
-     * **`/auth/v1/health` (Supabase Auth - Recommended for clean 200 OK)**: Pings the GoTrue auth service health endpoint. Returns a public `200 OK` without requiring any API keys.
-     * **`/rest/v1/` (Supabase API)**: Pings the auto-generated PostgREST API endpoint. This triggers an active check directly on your database connection layer.
-     * **Custom Path**: If you have a custom Next.js API route or Supabase Edge Function that runs database queries (e.g., `/functions/v1/health`), you can input that here.
-     > [!TIP]
-     > **Why `401 Unauthorized` on `/rest/v1/` is successful:**
-     > When pinging `/rest/v1/`, the response will be a `401 Unauthorized` because AliveDB does not send authentication headers. **This is expected and is considered a successful ping!** The 401 response proves the PostgREST server and database woke up, parsed the request, and responded.
+     * **`/rest/v1/` (Supabase API — Recommended)**: Pings the PostgREST API endpoint. When combined with a Supabase Anon Key (see below), this triggers a real database query that counts as activity.
+     * **`/` (Root)**: Pings the root URL of your project. Returns a public `200 OK` but **does not trigger a database query**.
+     * **`/auth/v1/health` (Supabase Auth)**: Returns a `200 OK` from GoTrue but **does not trigger a database query**.
+     * **Custom Path**: If you have a custom API route or Edge Function that runs database queries (e.g., `/functions/v1/health`), you can input that here.
+     > [!CAUTION]
+     > **Important: Unauthenticated pings do NOT prevent Supabase pausing!**
+     > Supabase pauses projects after 7 days of **database inactivity** — not HTTP inactivity. Pinging `/rest/v1/` without an API key returns `401 Unauthorized`, which is rejected at the API gateway **before reaching the database**. This does NOT reset the inactivity timer.
      > 
-     > If you prefer to see a clean **`200 OK`** in your logs without storing sensitive API keys in AliveDB, use `/auth/v1/health` or `/` as your health endpoint.
+     > **You must provide your Supabase Anon Key** (see below) so pings are authenticated and actually query the database.
+   * **Supabase Anon Key** *(recommended)*: Your project's public `anon` key. Find it in **Supabase Dashboard → Settings → API → Project API keys → `anon` `public`**. When provided, AliveDB sends proper `apikey` and `Authorization` headers so the request passes through the API gateway and actually reaches your database.
    * **Ping Interval**: Select how frequently AliveDB should wake up your project.
      * Options: `Every 6 hours`, `Every 12 hours`, `Every 24 hours`, or a custom cron expression (e.g. `0 0 * * *`).
      * *Since Supabase pauses inactive projects after 7 days, checking once or twice a day (e.g., every 12 or 24 hours) is highly recommended and sufficient to keep it alive.*
@@ -203,6 +204,7 @@ Once your AliveDB instance is running (locally, via Docker, or deployed on Verce
    * Click the **Add Project** button at the bottom of the form.
    * You will be redirected back to the dashboard, where your new project will appear.
    * Click the **Ping Now** button on your project's card to run an immediate manual ping to verify the setup. The response time, status code, and uptime chart will update instantly.
+   * **Verify you see `200 OK`** in the logs (not `401 Unauthorized`). A `200` confirms the ping is reaching the database.
 
 ---
 
@@ -240,42 +242,81 @@ See [`.env.example`](./.env.example) for full documentation.
 
 ---
 
+## External Cron Backup (Recommended for Vercel Hobby)
+
+Vercel Hobby plan limits cron jobs to **once per day**. If a single execution fails, your Supabase project may go 48+ hours without a ping. AliveDB provides an `/api/keepalive` endpoint that you can call from **free external cron services** as a redundant trigger:
+
+### Option A: cron-job.org (Free)
+1. Sign up at [cron-job.org](https://cron-job.org)
+2. Create a cron job with:
+   * **URL**: `https://your-alivedb.vercel.app/api/keepalive`
+   * **Schedule**: Every 6 hours (or your preferred interval)
+   * **Headers**: Add `Authorization: Bearer YOUR_CRON_SECRET`
+
+### Option B: UptimeRobot (Free)
+1. Sign up at [uptimerobot.com](https://uptimerobot.com)
+2. Add an HTTP(s) monitor with:
+   * **URL**: `https://your-alivedb.vercel.app/api/keepalive`
+   * **Monitoring Interval**: 6 hours
+   * **HTTP Headers**: `Authorization: Bearer YOUR_CRON_SECRET`
+
+### Option C: GitHub Actions
+Create `.github/workflows/keepalive.yml` in your repository:
+```yaml
+name: AliveDB Keepalive
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -f -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            https://your-alivedb.vercel.app/api/keepalive
+```
+
+---
+
 ## How It Works
 
 ```
-┌─────────────────────────────────────┐
-│           Vercel Cron (daily)       │
-│         GET /api/cron/ping          │
-└────────────────┬────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────┐
-│          Scheduler Logic            │
-│   Checks which projects are due     │
-│   based on interval + lastPingedAt  │
-└────────────────┬────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────┐
-│           SSRF Guard                │
-│   Validates URLs against blocklist  │
-│   Checks resolved DNS IPs           │
-└────────────────┬────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────┐
-│           Ping Engine               │
-│   HTTP GET/HEAD with timeout        │
-│   Retry with exponential backoff    │
-│   Tracks response time              │
-└────────────────┬────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────┐
-│           Turso / SQLite            │
-│   Stores PingLog + updates Project  │
-│   status, lastPingedAt, nextPingAt  │
-└─────────────────────────────────────┘
+┌─────────────────────────────────────┐   ┌─────────────────────────────────┐
+│      Vercel Cron (daily)            │   │  External Cron (cron-job.org,   │
+│      GET /api/cron/ping             │   │  UptimeRobot, GitHub Actions)   │
+└────────────────┬────────────────────┘   │    GET /api/keepalive           │
+                 │                        └───────────────┬─────────────────┘
+                 └──────────────┬──────────────────────────┘
+                                │
+                                ▼
+              ┌─────────────────────────────────────┐
+              │          Scheduler Logic             │
+              │   Checks which projects are due      │
+              │   based on interval + lastPingedAt   │
+              └────────────────┬─────────────────────┘
+                               │
+                               ▼
+              ┌─────────────────────────────────────┐
+              │           SSRF Guard                 │
+              │   Validates URLs against blocklist   │
+              │   Checks resolved DNS IPs            │
+              └────────────────┬─────────────────────┘
+                               │
+                               ▼
+              ┌─────────────────────────────────────┐
+              │           Ping Engine                │
+              │   HTTP GET/HEAD with timeout          │
+              │   Retry with exponential backoff      │
+              │   Sends Supabase apikey + Bearer      │
+              │   headers when anon key is provided   │
+              └────────────────┬─────────────────────┘
+                               │
+                               ▼
+              ┌─────────────────────────────────────┐
+              │           Turso / SQLite             │
+              │   Stores PingLog + updates Project   │
+              │   status, lastPingedAt, nextPingAt   │
+              └─────────────────────────────────────┘
 ```
 
 ---

@@ -13,18 +13,25 @@ interface PingOptions {
   method?: "GET" | "HEAD";
   timeoutMs?: number;
   maxRetries?: number;
+  supabaseAnonKey?: string | null;
 }
 
 /**
  * Pings a single URL with SSRF protection, timeout, and retry.
+ * When supabaseAnonKey is provided, sends proper Supabase auth headers
+ * so the request actually reaches the database (required for keep-alive).
  */
 export async function pingUrl(
   url: string,
   healthEndpoint: string = "/",
   options: PingOptions = {}
 ): Promise<PingResult> {
-  const { method = "GET", timeoutMs = DEFAULT_TIMEOUT_MS, maxRetries = DEFAULT_MAX_RETRIES } =
-    options;
+  const {
+    method = "GET",
+    timeoutMs = DEFAULT_TIMEOUT_MS,
+    maxRetries = DEFAULT_MAX_RETRIES,
+    supabaseAnonKey,
+  } = options;
 
   // Build full target URL
   let fullUrl: string;
@@ -50,7 +57,7 @@ export async function pingUrl(
   let lastError: string | undefined;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    const result = await attemptPing(fullUrl, method, timeoutMs);
+    const result = await attemptPing(fullUrl, method, timeoutMs, supabaseAnonKey);
 
     if (result.success) {
       return result;
@@ -70,20 +77,29 @@ export async function pingUrl(
 async function attemptPing(
   url: string,
   method: "GET" | "HEAD",
-  timeoutMs: number
+  timeoutMs: number,
+  supabaseAnonKey?: string | null
 ): Promise<PingResult> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   const start = Date.now();
 
   try {
+    // Build headers — include Supabase auth when key is provided
+    const headers: Record<string, string> = {
+      "User-Agent": "AliveDB/1.0 (keep-alive monitor; https://github.com/piyushkumar-prog/AliveDB)",
+      Accept: "application/json, text/plain, */*",
+    };
+
+    if (supabaseAnonKey) {
+      headers["apikey"] = supabaseAnonKey;
+      headers["Authorization"] = `Bearer ${supabaseAnonKey}`;
+    }
+
     const response = await fetch(url, {
       method,
       signal: controller.signal,
-      headers: {
-        "User-Agent": "AliveDB/1.0 (keep-alive monitor; https://github.com/piyushkumar-prog/AliveDB)",
-        Accept: "application/json, text/plain, */*",
-      },
+      headers,
       // Prevent following redirects to private IPs (mitigates SSRF redirect bypasses)
       redirect: "manual",
     });

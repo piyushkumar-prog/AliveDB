@@ -11,6 +11,7 @@ const UpdateProjectSchema = z.object({
   pingInterval: z.enum(["6h", "12h", "24h", "custom"]).optional(),
   customCron: z.string().optional(),
   method: z.enum(["GET", "HEAD"]).optional(),
+  supabaseAnonKey: z.string().nullable().optional(),
   isPaused: z.boolean().optional(),
 });
 

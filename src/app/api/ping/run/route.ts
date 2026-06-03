@@ -52,6 +52,7 @@ export async function POST(req: NextRequest) {
     // Execute ping
     const result = await pingUrl(project.url, project.healthEndpoint, {
       method: project.method as "GET" | "HEAD",
+      supabaseAnonKey: project.supabaseAnonKey,
     });
 
     const now = new Date();

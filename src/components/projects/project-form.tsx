@@ -36,6 +36,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
     pingInterval: initialData?.pingInterval ?? "12h",
     customCron: initialData?.customCron ?? "",
     method: initialData?.method ?? "GET",
+    supabaseAnonKey: initialData?.supabaseAnonKey ?? "",
   });
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -77,6 +78,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
       pingInterval: form.pingInterval,
       customCron: form.pingInterval === "custom" ? form.customCron.trim() : undefined,
       method: form.method,
+      supabaseAnonKey: form.supabaseAnonKey.trim() || null,
     };
 
     try {
@@ -211,6 +213,31 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
               <span style={{ fontFamily: "monospace" }}>{previewUrl}</span>
             </div>
           )}
+        </div>
+
+        {/* Supabase Anon Key */}
+        <div className="form-group">
+          <label className="form-label" htmlFor="supabaseAnonKey">
+            Supabase Anon Key
+            <span style={{ color: "#9ca3af", fontWeight: 400, fontSize: "11px", marginLeft: "6px" }}>(recommended)</span>
+          </label>
+          <input
+            id="supabaseAnonKey"
+            className="form-input mono"
+            type="password"
+            placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            value={form.supabaseAnonKey}
+            onChange={set("supabaseAnonKey")}
+            autoComplete="off"
+          />
+          <p className="form-hint">
+            Your Supabase project&apos;s public{" "}
+            <code style={{ background: "#f3f4f6", padding: "1px 5px", borderRadius: "4px", fontSize: "11px" }}>anon</code>{" "}
+            key. Find it in{" "}
+            <strong>Supabase Dashboard → Settings → API → Project API keys</strong>.{" "}
+            Without this key, pings return 401 and{" "}
+            <em>do not count as database activity</em> — your project may still get paused.
+          </p>
         </div>
 
         {/* Ping Interval */}
