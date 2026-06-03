@@ -15,7 +15,7 @@ AliveDB is an open-source, self-hosted platform that prevents your Supabase proj
 
 ## Features
 
-- **Automated Keep-Alive** — Pings your Supabase endpoints on a schedule (6h, 12h, 24h, or custom cron)
+- **Automated Keep-Alive** — Pings your Supabase endpoints once every 24 hours (aligned with Vercel Hobby limits)
 - **Vercel Cron Jobs** — First-class Vercel deployment with native cron support
 - **SSRF Protection** — Blocks requests to private IP ranges, loopback, and cloud metadata endpoints
 - **Analytics Dashboard** — Uptime history, response time charts, and activity feed
@@ -183,19 +183,18 @@ Once your AliveDB instance is running (locally, via Docker, or deployed on Verce
      https://[your-project-ref].supabase.co
      ```
    * **Health Endpoint**: The URL path that AliveDB will ping.
-     * **`/rest/v1/` (Supabase API — Recommended)**: Pings the PostgREST API endpoint. When combined with a Supabase Anon Key (see below), this triggers a real database query that counts as activity.
-     * **`/` (Root)**: Pings the root URL of your project. Returns a public `200 OK` but **does not trigger a database query**.
-     * **`/auth/v1/health` (Supabase Auth)**: Returns a `200 OK` from GoTrue but **does not trigger a database query**.
-     * **Custom Path**: If you have a custom API route or Edge Function that runs database queries (e.g., `/functions/v1/health`), you can input that here.
-     > [!CAUTION]
-     > **Important: Unauthenticated pings do NOT prevent Supabase pausing!**
-     > Supabase pauses projects after 7 days of **database inactivity** — not HTTP inactivity. Pinging `/rest/v1/` without an API key returns `401 Unauthorized`, which is rejected at the API gateway **before reaching the database**. This does NOT reset the inactivity timer.
-     > 
-     > **You must provide your Supabase Anon Key** (see below) so pings are authenticated and actually query the database.
-   * **Supabase Anon Key** *(recommended)*: Your project's public `anon` key. Find it in **Supabase Dashboard → Settings → API → Project API keys → `anon` `public`**. When provided, AliveDB sends proper `apikey` and `Authorization` headers so the request passes through the API gateway and actually reaches your database.
-   * **Ping Interval**: Select how frequently AliveDB should wake up your project.
-     * Options: `Every 6 hours`, `Every 12 hours`, `Every 24 hours`, or a custom cron expression (e.g. `0 0 * * *`).
-     * *Since Supabase pauses inactive projects after 7 days, checking once or twice a day (e.g., every 12 or 24 hours) is highly recommended and sufficient to keep it alive.*
+      * **`/rest/v1/non_existent` (Recommended for Anon Key)**: Pings a table path. When using the public `anon` key, Supabase blocks access to the root path (`/rest/v1/`), returning a `401`. Pinging a table path (even a non-existent one) bypasses the gatekeeper, successfully authenticates, queries the schema cache (database activity!), and returns a `404 Not Found`, which counts as success.
+      * **`/rest/v1/` (Supabase API)**: Pings the API root. Note that this requires the secret `service_role` key; using the public `anon` key here will return `401 Unauthorized`.
+      * **`/` (Root)**: Pings the root URL of your project. Returns a public `200 OK` but **does not trigger a database query** (does not prevent pausing).
+      * **`/auth/v1/health` (Supabase Auth)**: Returns a `200 OK` from GoTrue but **does not trigger a database query** (does not prevent pausing).
+      * **Custom Path**: If you have a custom API route or Edge Function that runs database queries (e.g., `/functions/v1/health`), you can input that here.
+      > [!CAUTION]
+      > **Important: Unauthenticated pings do NOT prevent Supabase pausing!**
+      > Supabase pauses projects after 7 days of **database inactivity** — not HTTP inactivity. Pinging `/rest/v1/` without an API key returns `401 Unauthorized`, which is rejected at the API gateway **before reaching the database**. This does NOT reset the inactivity timer.
+      > 
+      > **You must provide your Supabase Anon Key** and use a table path (like `/rest/v1/non_existent`) so pings are authenticated and actually query the database.
+   * **Supabase Anon Key** *(recommended)*: Your project's public `anon` key. Find it in **Supabase Dashboard → Settings → API → Project API keys → `anon` `public`**. When provided, AliveDB sends proper `apikey` and `Authorization` headers. You can also paste your `service_role` key here if you want to ping the root `/rest/v1/` path directly.
+   * **Ping Interval**: Fixed to `Every 24 hours` (once per day) to align with Vercel Hobby plan cron execution limits. Once per day is fully sufficient to keep your Supabase database active (since they require activity once every 7 days).
    * **HTTP Method**:
      * **`GET` (Recommended)**: Performs a full request. Best for standard health checks and ensuring the page executes completely.
      * **`HEAD`**: Requests only headers. Lightweight and consumes less bandwidth.
@@ -204,7 +203,7 @@ Once your AliveDB instance is running (locally, via Docker, or deployed on Verce
    * Click the **Add Project** button at the bottom of the form.
    * You will be redirected back to the dashboard, where your new project will appear.
    * Click the **Ping Now** button on your project's card to run an immediate manual ping to verify the setup. The response time, status code, and uptime chart will update instantly.
-   * **Verify you see `200 OK`** in the logs (not `401 Unauthorized`). A `200` confirms the ping is reaching the database.
+   * **Verify you see `404 Not Found` or `200 OK`** in the logs (not `401 Unauthorized`). A `404` or `200` confirms the ping is successfully authenticated and reaching the database.
 
 ---
 

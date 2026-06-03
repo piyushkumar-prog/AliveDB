@@ -13,10 +13,7 @@ interface ProjectFormProps {
 }
 
 const INTERVALS = [
-  { value: "6h", label: "Every 6 hours" },
-  { value: "12h", label: "Every 12 hours" },
-  { value: "24h", label: "Every 24 hours" },
-  { value: "custom", label: "Custom cron expression" },
+  { value: "24h", label: "Every 24 hours (1 day)" },
 ];
 
 const METHODS = [
@@ -33,7 +30,7 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
     name: initialData?.name ?? "",
     url: initialData?.url ?? "",
     healthEndpoint: initialData?.healthEndpoint ?? "/",
-    pingInterval: initialData?.pingInterval ?? "12h",
+    pingInterval: initialData?.pingInterval ?? "24h",
     customCron: initialData?.customCron ?? "",
     method: initialData?.method ?? "GET",
     supabaseAnonKey: initialData?.supabaseAnonKey ?? "",
@@ -235,8 +232,8 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
             <code style={{ background: "#f3f4f6", padding: "1px 5px", borderRadius: "4px", fontSize: "11px" }}>anon</code>{" "}
             key. Find it in{" "}
             <strong>Supabase Dashboard → Settings → API → Project API keys</strong>.{" "}
-            Without this key, pings return 401 and{" "}
-            <em>do not count as database activity</em> — your project may still get paused.
+            <br />
+            <span style={{ color: "#dc2626", fontWeight: 500 }}>Important:</span> To avoid a 401 Unauthorized block from Supabase gateway, set the <strong>Health Endpoint</strong> to a table path (e.g. <code style={{ background: "#f3f4f6", padding: "1px 5px", borderRadius: "4px", fontSize: "11px" }}>/rest/v1/non_existent_table</code> or <code style={{ background: "#f3f4f6", padding: "1px 5px", borderRadius: "4px", fontSize: "11px" }}>/rest/v1/your_table_name</code>) instead of just <code style={{ background: "#f3f4f6", padding: "1px 5px", borderRadius: "4px", fontSize: "11px" }}>/rest/v1/</code>.
           </p>
         </div>
 
@@ -245,47 +242,17 @@ export function ProjectForm({ initialData, mode }: ProjectFormProps) {
           <label className="form-label" htmlFor="pingInterval">
             Ping Interval
           </label>
-          <select
+          <input
             id="pingInterval"
-            className="form-select"
-            value={form.pingInterval}
-            onChange={set("pingInterval")}
-          >
-            {INTERVALS.map((i) => (
-              <option key={i.value} value={i.value}>
-                {i.label}
-              </option>
-            ))}
-          </select>
+            className="form-input"
+            type="text"
+            value="Every 24 hours (1 day)"
+            disabled
+          />
           <p className="form-hint">
-            How often to ping your project to prevent Supabase from pausing it.
+            Pings are executed once every 24 hours (aligned with Vercel Hobby plan limitations).
           </p>
         </div>
-
-        {/* Custom cron */}
-        {form.pingInterval === "custom" && (
-          <div className="form-group animate-fade-in">
-            <label className="form-label" htmlFor="customCron">
-              Custom Cron Expression
-            </label>
-            <input
-              id="customCron"
-              className="form-input mono"
-              type="text"
-              placeholder="0 */8 * * *"
-              value={form.customCron}
-              onChange={set("customCron")}
-            />
-            <p className="form-hint">
-              Standard 5-field cron expression. Example:{" "}
-              <code style={{ background: "#f3f4f6", padding: "1px 5px", borderRadius: "4px", fontSize: "11px" }}>
-                0 */8 * * *
-              </code>{" "}
-              = every 8 hours.
-            </p>
-            {fieldErrors.customCron && <p className="form-error">{fieldErrors.customCron}</p>}
-          </div>
-        )}
 
         {/* HTTP Method */}
         <div className="form-group">
